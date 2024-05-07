@@ -2,6 +2,8 @@
 
 #include "frmAbout.h"
 #include <iostream>
+#include "FileOperator.h"
+#include "DataSorter.h"
 
 namespace OSmetod {
 
@@ -21,12 +23,16 @@ namespace OSmetod {
 		{
 			InitializeComponent();
 			frmabout = gcnew frmAbout();
+			this->fileOperator = gcnew FileOperator();
 		}
 
 		System::Void executeMainTask();
-		List<String^>^ getDataGridEnabledRows(DataGridView^ dataGrid);
+		List<String^>^ getDataGridRows(DataGridView^ dataGrid, bool enabledOnly);
 		void visualizeResult(Dictionary<Regex^, List<String^>^>^ result);
+		bool saveInitialData();
+		bool openInitialData();
 	protected:
+		FileOperator^ fileOperator;
 		~frmMain()
 		{
 			if (components)
@@ -302,30 +308,32 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// tmFileNew
 			// 
 			this->tmFileNew->Name = L"tmFileNew";
-			this->tmFileNew->Size = System::Drawing::Size(180, 22);
+			this->tmFileNew->Size = System::Drawing::Size(124, 22);
 			this->tmFileNew->Text = L"Новий";
 			// 
 			// tmFileLoad
 			// 
 			this->tmFileLoad->Name = L"tmFileLoad";
-			this->tmFileLoad->Size = System::Drawing::Size(180, 22);
+			this->tmFileLoad->Size = System::Drawing::Size(124, 22);
 			this->tmFileLoad->Text = L"Відкрити";
+			this->tmFileLoad->Click += gcnew System::EventHandler(this, &frmMain::tmFileLoad_Click);
 			// 
 			// tmFileSave
 			// 
 			this->tmFileSave->Name = L"tmFileSave";
-			this->tmFileSave->Size = System::Drawing::Size(180, 22);
+			this->tmFileSave->Size = System::Drawing::Size(124, 22);
 			this->tmFileSave->Text = L"Зберегти";
+			this->tmFileSave->Click += gcnew System::EventHandler(this, &frmMain::tmFileSave_Click);
 			// 
 			// toolStripMenuItem1
 			// 
 			this->toolStripMenuItem1->Name = L"toolStripMenuItem1";
-			this->toolStripMenuItem1->Size = System::Drawing::Size(177, 6);
+			this->toolStripMenuItem1->Size = System::Drawing::Size(121, 6);
 			// 
 			// tmFileClose
 			// 
 			this->tmFileClose->Name = L"tmFileClose";
-			this->tmFileClose->Size = System::Drawing::Size(180, 22);
+			this->tmFileClose->Size = System::Drawing::Size(124, 22);
 			this->tmFileClose->Text = L"Закрити";
 			this->tmFileClose->Click += gcnew System::EventHandler(this, &frmMain::tsbexit_Click);
 			// 
@@ -339,7 +347,7 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// tmProcessStart
 			// 
 			this->tmProcessStart->Name = L"tmProcessStart";
-			this->tmProcessStart->Size = System::Drawing::Size(180, 22);
+			this->tmProcessStart->Size = System::Drawing::Size(115, 22);
 			this->tmProcessStart->Text = L"Почати";
 			// 
 			// tmsiInfo
@@ -355,13 +363,13 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// tmInfoHelp
 			// 
 			this->tmInfoHelp->Name = L"tmInfoHelp";
-			this->tmInfoHelp->Size = System::Drawing::Size(180, 22);
+			this->tmInfoHelp->Size = System::Drawing::Size(154, 22);
 			this->tmInfoHelp->Text = L"Допомога";
 			// 
 			// tmInfoAbout
 			// 
 			this->tmInfoAbout->Name = L"tmInfoAbout";
-			this->tmInfoAbout->Size = System::Drawing::Size(180, 22);
+			this->tmInfoAbout->Size = System::Drawing::Size(154, 22);
 			this->tmInfoAbout->Text = L"Про програму";
 			this->tmInfoAbout->Click += gcnew System::EventHandler(this, &frmMain::tmsiAbout_Click);
 			// 
@@ -483,9 +491,10 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->initialDataGrid->RowHeadersBorderStyle = System::Windows::Forms::DataGridViewHeaderBorderStyle::Sunken;
 			this->initialDataGrid->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
 			this->initialDataGrid->SelectionMode = System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
-			this->initialDataGrid->Size = System::Drawing::Size(219, 409);
+			this->initialDataGrid->Size = System::Drawing::Size(232, 409);
 			this->initialDataGrid->TabIndex = 0;
 			this->initialDataGrid->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &frmMain::dataGridView1_CellContentClick);
+			this->initialDataGrid->RowsAdded += gcnew System::Windows::Forms::DataGridViewRowsAddedEventHandler(this, &frmMain::initialDataGrid_RowsAdded);
 			// 
 			// initialDataStringCol
 			// 
@@ -523,7 +532,7 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// 
 			this->initialDataContainer->Panel2->Controls->Add(this->regexGrid);
 			this->initialDataContainer->Size = System::Drawing::Size(484, 409);
-			this->initialDataContainer->SplitterDistance = 219;
+			this->initialDataContainer->SplitterDistance = 232;
 			this->initialDataContainer->TabIndex = 5;
 			// 
 			// regexGrid
@@ -545,9 +554,10 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->regexGrid->RowHeadersBorderStyle = System::Windows::Forms::DataGridViewHeaderBorderStyle::Sunken;
 			this->regexGrid->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
 			this->regexGrid->SelectionMode = System::Windows::Forms::DataGridViewSelectionMode::FullRowSelect;
-			this->regexGrid->Size = System::Drawing::Size(261, 409);
+			this->regexGrid->Size = System::Drawing::Size(248, 409);
 			this->regexGrid->TabIndex = 3;
 			this->regexGrid->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &frmMain::dataGridView2_CellContentClick);
+			this->regexGrid->RowsAdded += gcnew System::Windows::Forms::DataGridViewRowsAddedEventHandler(this, &frmMain::regexGrid_RowsAdded);
 			// 
 			// regexGridTemplateCol
 			// 
@@ -745,11 +755,25 @@ private: System::Void dataGridView2_CellContentClick(System::Object^ sender, Sys
 }
 private: System::Void toolStripStatusLabel1_Click(System::Object^ sender, System::EventArgs^ e) {
 }
-	private: System::Void tsbNew_MouseEnter(System::Object^ sender, System::EventArgs^ e) {
-		statusMainLabel->Text = "Create new file with initial data";
-	}
-	private: System::Void tsbNew_MouseLeave(System::Object^ sender, System::EventArgs^ e) {
-		statusMainLabel->Text = "";
-	}
+private: System::Void tsbNew_MouseEnter(System::Object^ sender, System::EventArgs^ e) {
+	statusMainLabel->Text = "Create new file with initial data";
+}
+private: System::Void tsbNew_MouseLeave(System::Object^ sender, System::EventArgs^ e) {
+	statusMainLabel->Text = "";
+}
+private: System::Void tmFileSave_Click(System::Object^ sender, System::EventArgs^ e) {
+	saveInitialData();
+}
+private: System::Void tmFileLoad_Click(System::Object^ sender, System::EventArgs^ e) {
+	openInitialData();
+}
+private: System::Void initialDataGrid_RowsAdded(System::Object^ sender, System::Windows::Forms::DataGridViewRowsAddedEventArgs ^ e) {
+	Console::WriteLine(e->RowIndex);
+	this->initialDataGrid->Rows[e->RowIndex - 1]->Cells[1]->Value = true;
+}
+private: System::Void regexGrid_RowsAdded(System::Object^ sender, System::Windows::Forms::DataGridViewRowsAddedEventArgs ^ e) {
+	Console::WriteLine(e->RowIndex);
+	this->regexGrid->Rows[e->RowIndex - 1]->Cells[1]->Value = true;
+}
 };
 }

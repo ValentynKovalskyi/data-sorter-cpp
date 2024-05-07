@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSorter.h" />
+    <ClInclude Include="FileOperator.h" />
     <ClInclude Include="frmAbout.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -132,6 +133,7 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Header.h" />
+    <ClInclude Include="InitialData.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

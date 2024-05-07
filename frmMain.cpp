@@ -19,18 +19,22 @@ void main() {
 
 }
 
-List<String^>^ frmMain::getDataGridEnabledRows(DataGridView^ dataGrid) {
+List<String^>^ frmMain::getDataGridRows(DataGridView^ dataGrid, bool enabledOnly) {
     List<String^>^ resultList = gcnew List<String^>();
 
     if (dataGrid->Rows->Count == 0)
         return resultList;
 
     for each (DataGridViewRow^ row in dataGrid->Rows) {
-        DataGridViewCheckBoxCell^ checkBoxCell = dynamic_cast<DataGridViewCheckBoxCell^>(row->Cells[1]);
-        if (checkBoxCell != nullptr && Convert::ToBoolean(checkBoxCell->Value)) {
+        if (enabledOnly) {
+            DataGridViewCheckBoxCell^ checkBoxCell = dynamic_cast<DataGridViewCheckBoxCell^>(row->Cells[1]);
+            if (checkBoxCell != nullptr && !Convert::ToBoolean(checkBoxCell->Value)) continue;
+        }
+        if (row->Cells[0] != nullptr) {
             String^ value = row->Cells[0]->Value->ToString();
             resultList->Add(value);
         }
+
     }
 
     return resultList;
@@ -44,7 +48,8 @@ System::Void frmMain::executeButton_Click(System::Object^ sender, System::EventA
 System::Void frmMain::executeMainTask() {
     frmMain::resultGrid->Columns->Clear();
 
-    DataSorter ^ dataSorter = gcnew DataSorter(frmMain::getDataGridEnabledRows(frmMain::initialDataGrid), frmMain::getDataGridEnabledRows(frmMain::regexGrid));
+    DataSorter ^ dataSorter = gcnew DataSorter(frmMain::getDataGridRows(frmMain::initialDataGrid, true), 
+        frmMain::getDataGridRows(frmMain::regexGrid, true));
     Dictionary<Regex^, List<String^>^>^ sortedData = dataSorter->execute();
 
     this->visualizeResult(sortedData);
@@ -67,3 +72,13 @@ void frmMain::visualizeResult(Dictionary<Regex^, List<String^>^>^ result) {
         Console::WriteLine();
     }
 }
+
+bool frmMain::saveInitialData() {
+    InitialData^ initialData = gcnew InitialData(frmMain::getDataGridRows(frmMain::initialDataGrid, false), 
+        frmMain::getDataGridRows(frmMain::regexGrid, false));
+    return frmMain::fileOperator->saveInitialData(initialData);
+};
+
+bool frmMain::openInitialData() {
+    return frmMain::fileOperator->openInitialData();
+};
