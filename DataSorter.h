@@ -9,11 +9,13 @@
 		List<String^>^ dataList;
 		List<String^>^ templatesList;
 		Dictionary<Regex^, List<String^>^>^ lastResults;
+		Dictionary<String^,List<Regex^>^>^ lastResultsByString;
 		long long executionTime;
-
 		List<String^>^ getDataMatchingRegex(Regex^ regex);
+
 	public:
         DataSorter(List<String^>^ dataList, List<String^>^ templatesList);
+		DataSorter();
 
         ~DataSorter();
 
@@ -28,6 +30,10 @@
 		Dictionary<Regex^, List<String^>^>^ execute();
 
 		Dictionary<Regex^, List<String^>^>^ getLastResult();
+		
+		Dictionary<String^, List<Regex^>^>^ getLastResultByString();
 
 		long long getExecutionTime();
+
+		void generateResultsByString();
 	};

@@ -24,15 +24,24 @@ namespace OSmetod {
 			InitializeComponent();
 			frmabout = gcnew frmAbout();
 			this->fileOperator = gcnew FileOperator();
+			this->dataSorter = gcnew DataSorter();
 		}
 
 		System::Void executeMainTask();
 		List<String^>^ getDataGridRows(DataGridView^ dataGrid, bool enabledOnly);
-		void visualizeResult(Dictionary<Regex^, List<String^>^>^ result);
+		void visualizeResult();
+		void visualizeResultByString();
 		bool saveInitialData();
 		bool openInitialData();
+	private: System::Windows::Forms::RadioButton^ sortByStringsRB;
+	public:
+
+	private: System::Windows::Forms::RadioButton^ sortByTemplatesRB;
+	public:
+
 	protected:
 		FileOperator^ fileOperator;
+		DataSorter^ dataSorter;
 		~frmMain()
 		{
 			if (components)
@@ -153,7 +162,7 @@ private: System::Windows::Forms::Panel^ resultPanel;
 
 private: System::Windows::Forms::ToolStrip^ toolStrip2;
 private: System::Windows::Forms::ToolStripLabel^ toolStripLabel2;
-private: System::Windows::Forms::ToolStripComboBox^ sortByComboBox;
+
 
 private: System::Windows::Forms::DataGridView^ dataGridView3;
 
@@ -257,11 +266,12 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->regexGridTemplateCol = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->regexGridEnabledCol = (gcnew System::Windows::Forms::DataGridViewCheckBoxColumn());
 			this->resultPanel = (gcnew System::Windows::Forms::Panel());
+			this->sortByTemplatesRB = (gcnew System::Windows::Forms::RadioButton());
+			this->sortByStringsRB = (gcnew System::Windows::Forms::RadioButton());
 			this->resultGrid = (gcnew System::Windows::Forms::DataGridView());
 			this->additionalInfoBox = (gcnew System::Windows::Forms::ListBox());
 			this->toolStrip2 = (gcnew System::Windows::Forms::ToolStrip());
 			this->toolStripLabel2 = (gcnew System::Windows::Forms::ToolStripLabel());
-			this->sortByComboBox = (gcnew System::Windows::Forms::ToolStripComboBox());
 			this->dataGridView3 = (gcnew System::Windows::Forms::DataGridView());
 			this->statusStrip = (gcnew System::Windows::Forms::StatusStrip());
 			this->toolStripStatusLabel1 = (gcnew System::Windows::Forms::ToolStripStatusLabel());
@@ -308,32 +318,32 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// tmFileNew
 			// 
 			this->tmFileNew->Name = L"tmFileNew";
-			this->tmFileNew->Size = System::Drawing::Size(124, 22);
+			this->tmFileNew->Size = System::Drawing::Size(180, 22);
 			this->tmFileNew->Text = L"Новий";
 			// 
 			// tmFileLoad
 			// 
 			this->tmFileLoad->Name = L"tmFileLoad";
-			this->tmFileLoad->Size = System::Drawing::Size(124, 22);
+			this->tmFileLoad->Size = System::Drawing::Size(180, 22);
 			this->tmFileLoad->Text = L"Відкрити";
 			this->tmFileLoad->Click += gcnew System::EventHandler(this, &frmMain::tmFileLoad_Click);
 			// 
 			// tmFileSave
 			// 
 			this->tmFileSave->Name = L"tmFileSave";
-			this->tmFileSave->Size = System::Drawing::Size(124, 22);
+			this->tmFileSave->Size = System::Drawing::Size(180, 22);
 			this->tmFileSave->Text = L"Зберегти";
 			this->tmFileSave->Click += gcnew System::EventHandler(this, &frmMain::tmFileSave_Click);
 			// 
 			// toolStripMenuItem1
 			// 
 			this->toolStripMenuItem1->Name = L"toolStripMenuItem1";
-			this->toolStripMenuItem1->Size = System::Drawing::Size(121, 6);
+			this->toolStripMenuItem1->Size = System::Drawing::Size(177, 6);
 			// 
 			// tmFileClose
 			// 
 			this->tmFileClose->Name = L"tmFileClose";
-			this->tmFileClose->Size = System::Drawing::Size(124, 22);
+			this->tmFileClose->Size = System::Drawing::Size(180, 22);
 			this->tmFileClose->Text = L"Закрити";
 			this->tmFileClose->Click += gcnew System::EventHandler(this, &frmMain::tsbexit_Click);
 			// 
@@ -343,11 +353,12 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->topMenuProcessItem->Name = L"topMenuProcessItem";
 			this->topMenuProcessItem->Size = System::Drawing::Size(61, 20);
 			this->topMenuProcessItem->Text = L"Процес";
+			this->topMenuProcessItem->Click += gcnew System::EventHandler(this, &frmMain::topMenuProcessItem_Click);
 			// 
 			// tmProcessStart
 			// 
 			this->tmProcessStart->Name = L"tmProcessStart";
-			this->tmProcessStart->Size = System::Drawing::Size(115, 22);
+			this->tmProcessStart->Size = System::Drawing::Size(180, 22);
 			this->tmProcessStart->Text = L"Почати";
 			// 
 			// tmsiInfo
@@ -363,15 +374,15 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// tmInfoHelp
 			// 
 			this->tmInfoHelp->Name = L"tmInfoHelp";
-			this->tmInfoHelp->Size = System::Drawing::Size(154, 22);
+			this->tmInfoHelp->Size = System::Drawing::Size(180, 22);
 			this->tmInfoHelp->Text = L"Допомога";
 			// 
 			// tmInfoAbout
 			// 
 			this->tmInfoAbout->Name = L"tmInfoAbout";
-			this->tmInfoAbout->Size = System::Drawing::Size(154, 22);
+			this->tmInfoAbout->Size = System::Drawing::Size(180, 22);
 			this->tmInfoAbout->Text = L"Про програму";
-			this->tmInfoAbout->Click += gcnew System::EventHandler(this, &frmMain::tmsiAbout_Click);
+			this->tmInfoAbout->Click += gcnew System::EventHandler(this, &frmMain::tsbInfo_Click);
 			// 
 			// tsMain
 			// 
@@ -444,7 +455,7 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->tsbAbout->Name = L"tsbAbout";
 			this->tsbAbout->Size = System::Drawing::Size(36, 36);
 			this->tsbAbout->Text = L"toolStripButton1";
-			this->tsbAbout->Click += gcnew System::EventHandler(this, &frmMain::tmsiAbout_Click);
+			this->tsbAbout->Click += gcnew System::EventHandler(this, &frmMain::tsbInfo_Click);
 			// 
 			// imageList1
 			// 
@@ -575,6 +586,8 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// 
 			this->resultPanel->Anchor = static_cast<System::Windows::Forms::AnchorStyles>(((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom)
 				| System::Windows::Forms::AnchorStyles::Right));
+			this->resultPanel->Controls->Add(this->sortByTemplatesRB);
+			this->resultPanel->Controls->Add(this->sortByStringsRB);
 			this->resultPanel->Controls->Add(this->resultGrid);
 			this->resultPanel->Controls->Add(this->additionalInfoBox);
 			this->resultPanel->Controls->Add(this->toolStrip2);
@@ -583,6 +596,30 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->resultPanel->Name = L"resultPanel";
 			this->resultPanel->Size = System::Drawing::Size(633, 441);
 			this->resultPanel->TabIndex = 2;
+			// 
+			// sortByTemplatesRB
+			// 
+			this->sortByTemplatesRB->AutoSize = true;
+			this->sortByTemplatesRB->Checked = true;
+			this->sortByTemplatesRB->Location = System::Drawing::Point(55, 2);
+			this->sortByTemplatesRB->Name = L"sortByTemplatesRB";
+			this->sortByTemplatesRB->Size = System::Drawing::Size(70, 17);
+			this->sortByTemplatesRB->TabIndex = 5;
+			this->sortByTemplatesRB->TabStop = true;
+			this->sortByTemplatesRB->Text = L"templates";
+			this->sortByTemplatesRB->UseVisualStyleBackColor = true;
+			this->sortByTemplatesRB->CheckedChanged += gcnew System::EventHandler(this, &frmMain::templatesRB_CheckedChanged);
+			// 
+			// sortByStringsRB
+			// 
+			this->sortByStringsRB->AutoSize = true;
+			this->sortByStringsRB->Location = System::Drawing::Point(131, 3);
+			this->sortByStringsRB->Name = L"sortByStringsRB";
+			this->sortByStringsRB->Size = System::Drawing::Size(55, 17);
+			this->sortByStringsRB->TabIndex = 6;
+			this->sortByStringsRB->Text = L"strings";
+			this->sortByStringsRB->UseVisualStyleBackColor = true;
+			this->sortByStringsRB->CheckedChanged += gcnew System::EventHandler(this, &frmMain::stringsRB_CheckedChanged);
 			// 
 			// resultGrid
 			// 
@@ -607,10 +644,7 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			// 
 			// toolStrip2
 			// 
-			this->toolStrip2->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
-				this->toolStripLabel2,
-					this->sortByComboBox
-			});
+			this->toolStrip2->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->toolStripLabel2 });
 			this->toolStrip2->Location = System::Drawing::Point(0, 0);
 			this->toolStrip2->Name = L"toolStrip2";
 			this->toolStrip2->Size = System::Drawing::Size(633, 25);
@@ -622,13 +656,6 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 			this->toolStripLabel2->Name = L"toolStripLabel2";
 			this->toolStripLabel2->Size = System::Drawing::Size(44, 22);
 			this->toolStripLabel2->Text = L"Sort by";
-			// 
-			// sortByComboBox
-			// 
-			this->sortByComboBox->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"Alphabet", L"Length", L"" });
-			this->sortByComboBox->Name = L"sortByComboBox";
-			this->sortByComboBox->Size = System::Drawing::Size(121, 25);
-			this->sortByComboBox->Click += gcnew System::EventHandler(this, &frmMain::toolStripComboBox1_Click);
 			// 
 			// dataGridView3
 			// 
@@ -706,7 +733,7 @@ private: System::Windows::Forms::SplitContainer^ initialDataContainer;
 #pragma endregion
 		private: frmAbout^ frmabout;
 
-	private: System::Void tmsiAbout_Click(System::Object^ sender, System::EventArgs^ e) {
+	private: System::Void tsbInfo_Click(System::Object^ sender, System::EventArgs^ e) {
 		frmabout->ShowDialog();
 	}
 private: System::Void executeButton_Click(System::Object^ sender, System::EventArgs^ e);
@@ -720,9 +747,6 @@ private: System::Void tsbNew_Click(System::Object^ sender, System::EventArgs^ e)
 }
 private: System::Void tsbexit_Click(System::Object^ sender, System::EventArgs^ e) {
 	this->Close();
-}
-private: System::Void tsbInfo_Click(System::Object^ sender, System::EventArgs^ e) {
-	MessageBox::Show("Information");
 }
 private: System::Void lvMain_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
 }
@@ -774,6 +798,20 @@ private: System::Void initialDataGrid_RowsAdded(System::Object^ sender, System::
 private: System::Void regexGrid_RowsAdded(System::Object^ sender, System::Windows::Forms::DataGridViewRowsAddedEventArgs ^ e) {
 	Console::WriteLine(e->RowIndex);
 	this->regexGrid->Rows[e->RowIndex - 1]->Cells[1]->Value = true;
+}
+private: System::Void templatesRB_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
+	if (this->sortByTemplatesRB->Checked) {
+		this->visualizeResult();
+	}
+}
+private: System::Void stringsRB_CheckedChanged(System::Object^ sender, System::EventArgs^ e) {
+	Console::WriteLine("asd1");
+	if (this->sortByStringsRB->Checked) {
+		Console::WriteLine("asd");
+		this->visualizeResultByString();
+	}
+}
+private: System::Void topMenuProcessItem_Click(System::Object^ sender, System::EventArgs^ e) {
 }
 };
 }

@@ -46,30 +46,47 @@ System::Void frmMain::executeButton_Click(System::Object^ sender, System::EventA
 }
 
 System::Void frmMain::executeMainTask() {
-    frmMain::resultGrid->Columns->Clear();
-
-    DataSorter ^ dataSorter = gcnew DataSorter(frmMain::getDataGridRows(frmMain::initialDataGrid, true), 
-        frmMain::getDataGridRows(frmMain::regexGrid, true));
+    this->dataSorter->setDataList(frmMain::getDataGridRows(frmMain::initialDataGrid, true));
+    this->dataSorter->setTemplatesList(frmMain::getDataGridRows(frmMain::regexGrid, true));
     Dictionary<Regex^, List<String^>^>^ sortedData = dataSorter->execute();
 
-    this->visualizeResult(sortedData);
+    if(this->sortByTemplatesRB->Checked) {
+        this->visualizeResult();
+    }
+    else {
+        this->visualizeResultByString();
+    }
+
     this->statusMainLabel->Text = "Execution time: " + dataSorter->getExecutionTime().ToString() + " ms";
 }
 
-void frmMain::visualizeResult(Dictionary<Regex^, List<String^>^>^ result) {
-    for each (Regex ^ regex in result->Keys) {
-        Console::WriteLine(regex->ToString());
-        Console::WriteLine("~~~~~~~~~~~~~~~");
+void frmMain::visualizeResult() {
+    frmMain::resultGrid->Columns->Clear();
+
+    for each (Regex ^ regex in this->dataSorter->getLastResult()->Keys) {
         List <String^>^ strList;
-        result->TryGetValue(regex, strList);
+        this->dataSorter->getLastResult()->TryGetValue(regex, strList);
         frmMain::resultGrid->Columns->Add(regex->ToString(), regex->ToString());
         for (int index = 0; index < strList->Count; ++index) {
             String^ str = strList[index];
             frmMain::resultGrid->Rows->Add();
             frmMain::resultGrid->Rows[index]->Cells[regex->ToString()]->Value = str;
-            Console::WriteLine("  " + str);
         }
-        Console::WriteLine();
+    }
+}
+
+void frmMain::visualizeResultByString() {
+    frmMain::resultGrid->Columns->Clear();
+
+    for each (String ^ str in this->dataSorter->getLastResultByString()->Keys) {
+        List <Regex^>^ regexList;
+        this->dataSorter->getLastResultByString()->TryGetValue(str, regexList);
+        frmMain::resultGrid->Columns->Add(str, str);
+        for (int index = 0; index < regexList->Count; ++index) {
+            Regex^ regex = regexList[index];
+            frmMain::resultGrid->Rows->Add();
+            frmMain::resultGrid->Rows[index]->Cells[str]->Value = regex->ToString();
+        }
     }
 }
 
